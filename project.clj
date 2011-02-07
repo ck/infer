@@ -11,4 +11,4 @@
   :dev-dependencies [[org.clojars.mmcgrana/lein-javac "1.2.1"]
 		     [swank-clojure "1.2.0"]
                      [lein-clojars "0.5.0"]]
-  :java-source-path [["src/jvm"]])
+  :java-source-path "src/jvm")

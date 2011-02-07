@@ -17,6 +17,7 @@
   (for [[k range] ranges]
     (bucket k range)))
 
+;; TODO: Better handling for mismatch between fns keys and data keys.
 (defn classify-one-to-one
   "Takes a map of fns and a map of features, where there is one classifier fn per feature and they share the same key names in the classifier and feature maps.  apply each classifer fn to the corresponding feature.
 
@@ -25,7 +26,11 @@
         {:a 10 :b 5})
    {:a 1 :b 0}"
   [fns data]
-  (merge-with #(%1 %2) fns data))
+  (into {}
+	(for [[k f] fns
+	      :let [v (data k)]]
+	  [k (if (.contains (keys data) k)
+	       (f v) 0)])))
 
 (defn classify-one-to-each
   "Takes a map of fns and a map of features, apply each classifer fn to each feature in the data map individually.

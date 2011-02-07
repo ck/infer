@@ -32,6 +32,9 @@
 (defn nth-is? [i pred coll]
   (pred (nth coll i)))
 
+
+;;TODO: shitty version of the classifiers. should be replaced/removed.
+
 ;;confusing names - this one takes a vec of feature-vectors and sums the # of examples passing the pred
 (defn count-when [pred coll]
   (count (filter pred coll)))
