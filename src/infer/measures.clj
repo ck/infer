@@ -366,10 +366,12 @@ the Euclidean distance or Euclidean metric is the ordinary distance between two 
       0.0
       x)
     (sparse-dot-product y x)))
-  
+
 (defn norm-sparse-vec [v]
   (let [norm (Math/sqrt (sparse-dot-product v v))]
-    (map-map #(/ % norm) v)))  
+    (if (> norm 0.0)
+      (map-map #(/ % norm) v)
+      v)))  
 
 (defn chebyshev-distance
 "In the limiting case of Lp reaching infinity we obtain the Chebyshev distance."
