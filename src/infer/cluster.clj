@@ -1,5 +1,6 @@
 (ns infer.cluster
-  (:use [clojure.contrib.seq-utils :only [indexed]]))
+  (:use [clojure.contrib.seq-utils :only [indexed]])
+  (:require [infer.matrix :as matrix]))
 
 (defn get-cluster-sim [mode get-sim xs ys]
   (let [vals (for [x xs y ys] (get-sim x y))]
@@ -9,12 +10,19 @@
 	  :min (apply min vals)
 	  (throw (RuntimeException. (format "Unrecognized mode: %s" mode))))))
 
+(defn upper-triangle-pairs [n]
+  (for [i (range n)
+	j (range (inc i) n)]
+    [i j]))
 
-(defn get-pairwise-scores [score-fn xs]
-  (into {}
-	(let [n (count xs)]
-	  (for [i (range n) j (range (inc i) n)]
-	    [[i j] (score-fn (nth xs i) (nth xs j))]))))
+(defn get-pairwise-score-matrix [score-fn xs]
+  (let [sim-matrix (matrix/fill 0.0 (count xs) (count xs))]
+    (doseq [[i j] (upper-triangle-pairs (count xs))]
+      (matrix/set-at
+         sim-matrix
+	 (score-fn (nth xs i) (nth xs j))
+	 i j))
+    sim-matrix))
 
 (defn agglomerative-cluster
   "does bottom-up clustering between items xs using get-sim. each round
@@ -32,12 +40,19 @@
   returns a clustering on xs represented as a list-of-lists e.g.
   [[:a :b] [:c]]"
   [mode get-sim xs]
-  (let [cluster-sim (partial get-cluster-sim mode get-sim)]
-    (loop [clusters (map (fn [x] [x]) xs)]
-      (let [pairwise (get-pairwise-scores cluster-sim clusters)
-	    [[i j] max-score] (apply max-key second pairwise)]
+  (let [sim-matrix (get-pairwise-score-matrix get-sim xs)
+	cluster-sim (partial get-cluster-sim mode
+			     (fn [i j]
+			       (matrix/get-at sim-matrix i j)))]
+    (loop [clusters (map (fn [i] [i]) (range (count xs)))]
+      (let [[i j] (apply max-key
+			 (fn [[i j]] (cluster-sim (nth clusters i) (nth clusters j)))
+			 (upper-triangle-pairs (count clusters)))
+	    max-score (cluster-sim (nth clusters i) (nth clusters j))]
 	(if (or (<= max-score 0.0) (= (count clusters) 1))
-	  clusters
+	  (map (fn [is]
+		 (map (partial nth xs) is))
+	       clusters)
 	  (recur
 	   (->> (indexed clusters)
 		(remove (comp #{i j} first))
