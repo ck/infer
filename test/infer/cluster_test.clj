@@ -20,7 +20,7 @@
 		[:a :c] 0.2
 		0.0))
 	cluster-score (partial get-cluster-sim :avg sim)]
-    (is (= {[0 0] 0.25, [0 1] 0.425, [0 2] 0.35, [1 1] 0.125, [1 2] 0.25, [2 2] 0.0}
+    (is (= {[0 1] 0.425, [0 2] 0.35, [1 2] 0.25}
 	   (get-pairwise-scores cluster-score [[:a :b] [:b :c] [:c]])))))
 
 (deftest agglomerative-cluster-test

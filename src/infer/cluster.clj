@@ -9,11 +9,12 @@
 	  :min (apply min vals)
 	  (throw (RuntimeException. (format "Unrecognized mode: %s" mode))))))
 
+
 (defn get-pairwise-scores [score-fn xs]
   (into {}
-    (for [[i x] (indexed xs)
-	  [j y] (drop i (indexed xs))]
-      [[i j] (score-fn x y)])))
+	(let [n (count xs)]
+	  (for [i (range n) j (range (inc i) n)]
+	    [[i j] (score-fn (nth xs i) (nth xs j))]))))
 
 (defn agglomerative-cluster
   "does bottom-up clustering between items xs using get-sim. each round
