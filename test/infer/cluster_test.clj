@@ -1,5 +1,5 @@
 (ns infer.cluster-test
-  (:use clojure.test infer.cluster))
+  (:use clojure.test infer.cluster infer.matrix))
 
 (deftest cluster-sim-test
   (let [sim (fn [a b]
@@ -13,11 +13,6 @@
     (is (= (get-cluster-sim :min sim [:a] [:b :c]) 0.2))))
 
 (deftest agglomerative-cluster-test
-  (let [sim (fn [a b]
-	      (case [a b]
-		[:a :b] 1
-		[:b :c] 0.5
-		[:a :c] 0.0
-		0.0))]
-    (is (= [[:a :b] [:c]]
-	  (agglomerative-cluster :min sim [:a :b :c])))))
+  (let [S (matrix [[0 1 0] [1 0 0.5] [0 0.5 0]] )]
+    (is (= [[0 1] [2]]
+	  (agglomerative-cluster :min S)))))

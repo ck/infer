@@ -25,8 +25,8 @@
     sim-matrix))
 
 (defn agglomerative-cluster
-  "does bottom-up clustering between items xs using get-sim. each round
-   two clusters are merged with maximum get-sim, as long as the max get-sim > 0.
+  "does bottom-up clustering between items using similarity maxtrix. each round
+   two clusters are merged with maximum similarity, as long as the max sim > 0.
 
    the score for two clusters merging is either the max, min, or avg between
    the elements of both clusters. initially, there is a singleton
@@ -37,22 +37,20 @@
      :max what's the max between elems of cluster
      :min what's the min between elems
 
-  returns a clustering on xs represented as a list-of-lists e.g.
-  [[:a :b] [:c]]"
-  [mode get-sim xs]
-  (let [sim-matrix (get-pairwise-score-matrix get-sim xs)
+  returns a clustering on xs represented as a list-of-lists of indices.
+  [[0 1] [2]]"
+  [mode sim-matrix]
+  (let [N (matrix/row-count sim-matrix)
 	cluster-sim (partial get-cluster-sim mode
 			     (fn [i j]
 			       (matrix/get-at sim-matrix i j)))]
-    (loop [clusters (map (fn [i] [i]) (range (count xs)))]
+    (loop [clusters (map (fn [i] [i]) (range N))]
       (let [[i j] (apply max-key
 			 (fn [[i j]] (cluster-sim (nth clusters i) (nth clusters j)))
 			 (upper-triangle-pairs (count clusters)))
 	    max-score (cluster-sim (nth clusters i) (nth clusters j))]
 	(if (or (<= max-score 0.0) (= (count clusters) 1))
-	  (map (fn [is]
-		 (map (partial nth xs) is))
-	       clusters)
+	  clusters
 	  (recur
 	   (->> (indexed clusters)
 		(remove (comp #{i j} first))
