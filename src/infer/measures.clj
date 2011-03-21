@@ -367,6 +367,10 @@ the Euclidean distance or Euclidean metric is the ordinary distance between two 
       x)
     (sparse-dot-product y x)))
 
+(defn sparse-vec-norm
+  [v]
+  (Math/sqrt (sparse-dot-product v v)))
+
 (defn norm-sparse-vec [v]
   (let [norm (Math/sqrt (sparse-dot-product v v))]
     (if (> norm 0.0)
