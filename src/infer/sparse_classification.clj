@@ -27,7 +27,8 @@
             
     See test for example usage."
    :author "Aria Haghighi <me@aria42.com>"}
-  (:use [infer.core :only [map-map, log-add]]
+  (:use [plumbing.core :only [apply-each map-map]]
+        [infer.core :only [log-add]]
         [infer.measures :only [dot-product, sparse-dot-product]]
         [infer.optimize :only [remember-last, lbfgs-optimize]]
         [clojure.contrib.map-utils :only [deep-merge-with]]))
@@ -127,6 +128,22 @@
   (label-posteriors [this datum]
                     ((comp second (make-posterior-fn weights-map)) datum)))
 
+;; ---------------
+;; Regularization
+;; ----------------
+
+(defn with-l2-regularization
+  "obj-fn: fn from weights to [obj-val grad]
+   weights and grad are seqs of doubles"
+  [sigma-sq obj-fn weights]
+  (if (<= sigma-sq 0) (obj-fn weights)
+      (let [l2-val (/ (dot-product weights weights) (* 2 sigma-sq))
+	    [val grad] (obj-fn weights)]
+	[(+ val l2-val)
+	 (map (fn [grad-val weight-val]
+		(+ grad-val (/ weight-val sigma-sq)))
+	      grad weights)])))
+
 ;; ---------------------------------------------
 ;; Logistic Regression
 ;; ---------------------------------------------
@@ -199,19 +216,70 @@
                           labeled-data-source)
         [preds labels] (index-data (labeled-data-fn))
         init-weights (double-array (* (count preds) (count labels)))
-        obj-fn (fn [weights]
-                 (let [weight-map (encode-weights-to-map weights labels preds)
-                       [log-like grad-map]
-                       (log-reg-parallel-compute labels
-                                                 (make-posterior-fn weight-map)
-                                                 (labeled-data-fn))
-                       grad (decode-map-to-weights grad-map labels preds)
-                       l2-penalty (/ (dot-product weights weights) (* 2 sigma-squared))
-                       l2-grad (map #(/ % sigma-squared) weights)]
-                   [(+ log-like l2-penalty) (map + grad l2-grad)]))
-        weights (apply lbfgs-optimize (remember-last obj-fn) init-weights (-> opts seq flatten))
+        obj-fn (->> (fn [weights]
+		      (let [weight-map (encode-weights-to-map weights labels preds)
+			[log-like grad-map]
+			(log-reg-parallel-compute labels
+						  (make-posterior-fn weight-map)
+						  (labeled-data-fn))
+			grad (decode-map-to-weights grad-map labels preds)]
+			[log-like grad]))
+		    (partial with-l2-regularization sigma-squared)
+		    remember-last)
+        weights (apply lbfgs-optimize obj-fn init-weights (-> opts seq flatten))
         weight-map (encode-weights-to-map weights labels preds)]
     (SparseLinearClassifier. weight-map)))
+
+;; ---------------------------------------------
+;; MaxEnt Reranking
+;; ---------------------------------------------
+
+(defn rerank-post
+  "returns [log-z posts] using a linear model over the weights "
+  [weights-map feat-vecs]
+  (let [vals (map (partial sparse-dot-product weights-map) feat-vecs)		  
+	log-val (log-add vals)]
+    [log-val (map (fn [x] (Math/exp (- x log-val))) vals)]))
+
+(defn rerank-grad [posts datum]
+  (->> posts
+       (map-indexed (fn [i p] (if (zero? i) p (- p))))
+       (vector datum)
+       (apply map (fn [fv post] (map-map (partial * post) fv)))
+       (reduce (partial merge-with (fnil + 0.0 0.0)))))
+
+(defn rerank-obj-term [weight-map datum]
+  (let [[log-z posts] (rerank-post weight-map datum)
+	true-log-score (sparse-dot-product weight-map (first datum))]
+    [(- true-log-score log-z) (rerank-grad posts datum)]))
+
+(defn reranker-obj [train-data preds weights]
+  (let [weight-map (into {} (map vector preds weights))
+	[obj-val grad-map]
+	  (->> train-data
+	       (map (partial rerank-obj-term weight-map))
+	       (reduce (partial apply-each [+ (partial merge-with (fnil + 0.0 0.0))])))]    
+    [(- obj-val) (map #(- (get grad-map % 0.0)) preds)]))
+
+(defn train-reranker
+  "train-data: seq of training examples. each example is a seq of feat-vec maps representing
+   a single example. the first is the correct choice for the example and the rest are incorrect.
+
+   [  [{:good 1} {:bad 1}] ] 
+
+   the training data will be looped over multiple times
+
+   returns the weight vector that can be used to score options"
+  [train-data & {:keys [sigma-sq] :or {sigma-sq 1.0}}]
+  (let [preds (->> train-data (mapcat (partial mapcat keys)) (into #{}) seq)
+	init-weights (repeat (count preds) 0.0)
+	obj-fn (->> (partial reranker-obj train-data preds)
+		    (partial with-l2-regularization sigma-sq)
+		    remember-last)]
+    (->> (lbfgs-optimize obj-fn  init-weights)
+	 (map vector preds)
+	 (into {}))))
+
 
 ;; ---------------------------------------------
 ;; MIRA Online Learning

@@ -6,6 +6,7 @@
 		 [org.apache.commons/commons-math "2.0"]
                  [ujmp-complete "0.2.4"]
 		 [org.apache.mahout/mahout-core "0.3"]
+		 [clj-sys/plumbing "0.1.3-SNAPSHOT"]
 		 [colt/colt "1.2.0"]
 		 [incanter/parallelcolt "0.9.4"]]
   :dev-dependencies [[org.clojars.mmcgrana/lein-javac "1.2.1"]
