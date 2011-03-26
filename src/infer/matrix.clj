@@ -7,7 +7,6 @@
   (:import [org.ujmp.core.matrix Matrix2D])
   (:import [org.ujmp.colt
 	    ColtSparseDoubleMatrix2D])
-;;  (:import [org.apache.mahout.core SparseMatrix])
   (:import [org.ujmp.parallelcolt
 	    ParallelColtSparseDoubleMatrix2D])
   (:import [org.ujmp.core.doublematrix
