@@ -47,9 +47,11 @@
   [mode get-sim items]
   (let [cluster-sim (partial get-cluster-sim mode get-sim)]
     (loop [clusters (map (fn [x] [x]) items)]
-      (let [to-merge (best-agglomerative-merge cluster-sim clusters)
-	    max-score (cluster-sim (nth clusters (first to-merge))
-				   (nth clusters (second to-merge)))]
-	(if (or (<= max-score 0.0) (= (count clusters) 1))
-	  clusters
-	  (recur (cluster-merge clusters to-merge)))))))
+      (if (= (count clusters) 1)
+	clusters
+	(let [to-merge (best-agglomerative-merge cluster-sim clusters)
+	      max-score (cluster-sim (nth clusters (first to-merge))
+				     (nth clusters (second to-merge)))]
+	  (if (<= max-score 0.0)
+	    clusters
+	    (recur (cluster-merge clusters to-merge))))))))
