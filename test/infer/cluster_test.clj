@@ -13,6 +13,8 @@
     (is (= (get-cluster-sim :min sim [:a] [:b :c]) 0.2))))
 
 (deftest agglomerative-cluster-test
-  (let [S (matrix [[0 1 0] [1 0 0.5] [0 0.5 0]] )]
+  (let [S (matrix [[0 1 0]
+		   [1 0 0.5]
+		   [0 0.5 0]])]
     (is (= [[0 1] [2]]
-	  (agglomerative-cluster :min S)))))
+	  (agglomerative-cluster :min (fn [i j] (get-at S i j)) (range 3))))))

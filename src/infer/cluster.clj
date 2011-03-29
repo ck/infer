@@ -8,6 +8,7 @@
 	  :avg (/ (reduce + vals) (count vals))
 	  :max (apply max vals)
 	  :min (apply min vals)
+	  :median (nth (/ (count vals) 2) (sort vals))
 	  (throw (RuntimeException. (format "Unrecognized mode: %s" mode))))))
 
 (defn upper-triangle-pairs [n]
@@ -15,14 +16,18 @@
 	j (range (inc i) n)]
     [i j]))
 
-(defn get-pairwise-score-matrix [score-fn xs]
-  (let [sim-matrix (matrix/fill 0.0 (count xs) (count xs))]
-    (doseq [[i j] (upper-triangle-pairs (count xs))]
-      (matrix/set-at
-         sim-matrix
-	 (score-fn (nth xs i) (nth xs j))
-	 i j))
-    sim-matrix))
+(defn best-agglomerative-merge [get-cluster-sim clusters]
+  (let [cs (seq clusters)]
+   (apply max-key
+	  (fn [[i j]] (get-cluster-sim (nth cs i) (nth cs j)))
+	  (upper-triangle-pairs (count cs)))))
+
+(defn cluster-merge [clusters [i j]]
+  (assert (< i j))
+  (->> (indexed clusters)
+       (remove (comp #{i j} first))
+       (map second)
+       (cons (concat (nth clusters i) (nth clusters j)))))
 
 (defn agglomerative-cluster
   "does bottom-up clustering between items using similarity maxtrix. each round
@@ -39,20 +44,12 @@
 
   returns a clustering on xs represented as a list-of-lists of indices.
   [[0 1] [2]]"
-  [mode sim-matrix]
-  (let [N (matrix/row-count sim-matrix)
-	cluster-sim (partial get-cluster-sim mode
-			     (fn [i j]
-			       (matrix/get-at sim-matrix i j)))]
-    (loop [clusters (map (fn [i] [i]) (range N))]
-      (let [[i j] (apply max-key
-			 (fn [[i j]] (cluster-sim (nth clusters i) (nth clusters j)))
-			 (upper-triangle-pairs (count clusters)))
-	    max-score (cluster-sim (nth clusters i) (nth clusters j))]
+  [mode get-sim items]
+  (let [cluster-sim (partial get-cluster-sim mode get-sim)]
+    (loop [clusters (map (fn [x] [x]) items)]
+      (let [to-merge (best-agglomerative-merge cluster-sim clusters)
+	    max-score (cluster-sim (nth clusters (first to-merge))
+				   (nth clusters (second to-merge)))]
 	(if (or (<= max-score 0.0) (= (count clusters) 1))
 	  clusters
-	  (recur
-	   (->> (indexed clusters)
-		(remove (comp #{i j} first))
-		(map second)
-		(cons (concat (nth clusters i) (nth clusters j))))))))))
+	  (recur (cluster-merge clusters to-merge)))))))
