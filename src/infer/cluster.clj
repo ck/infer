@@ -8,7 +8,7 @@
 	  :avg (/ (reduce + vals) (count vals))
 	  :max (apply max vals)
 	  :min (apply min vals)
-	  :median (nth (/ (count vals) 2) (sort vals))
+	  :median (nth (sort vals) (/ (count vals) 2))
 	  (throw (RuntimeException. (format "Unrecognized mode: %s" mode))))))
 
 (defn upper-triangle-pairs [n]
@@ -50,6 +50,8 @@
       (if (= (count clusters) 1)
 	clusters
 	(let [to-merge (best-agglomerative-merge cluster-sim clusters)
+	      cluster1 (nth clusters (first to-merge))
+	      cluster2 (nth clusters (second to-merge))
 	      max-score (cluster-sim (nth clusters (first to-merge))
 				     (nth clusters (second to-merge)))]
 	  (if (<= max-score 0.0)
