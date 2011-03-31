@@ -28,7 +28,7 @@
 	      (norm-sparse-vec {:good 1 :bad 1})
 	      (norm-sparse-vec {:bad 1})]]
     (is (= {:good 1 :bad -1}
-	   (mira-iter {} (constantly [ls data]) [nil]  {:max-alpha 100})))))
+	   (second (mira-iter {} (constantly [ls data]) [nil]  {:max-alpha 100}))))))
 
 (deftest train-mira-test
   (is (=

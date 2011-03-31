@@ -101,25 +101,31 @@
 
 (defn mira-iter
   [init-weights get-losses-and-datum instances
-   {:keys [max-alpha]
-    :or {max-alpha 0.15, num-iters 10}}]
+   {:keys [max-alpha,lambda]
+    :or {max-alpha 0.15, num-iters 10, lambda 1}}]
   (reduce
-     (fn [weights instance]
+   (fn [[num-errors weights] instance]
        (let [[losses datum] (get-losses-and-datum instance)
 	     [alpha delta-f] (mira-update
 			        (fn [weights losses datum]
-				  (let [scores (map (fn [fv] (sparse-dot-product fv weights)) datum)]
-				    (min-index scores)))
+				  (let [scores
+					(map
+					 (fn [fv loss]
+					   (+ (sparse-dot-product fv weights)
+					      (* lambda loss)))
+					 datum losses)]
+				    (max-index scores)))
 				weights
 				losses
 				datum)]
 	 (if (nil? delta-f)
-	     weights
-	     (merge-with +
-		      weights
-		      (map-map (partial * (min alpha max-alpha)) delta-f)))))
-     init-weights
-     instances))
+	   [num-errors weights]
+	   [(inc num-errors)
+	    (merge-with +
+	       weights
+	       (map-map (partial * (min alpha max-alpha)) delta-f))])))
+   [0 init-weights]
+   instances))
 
 (defn train-mira
   [get-losses-and-datum instances
@@ -127,5 +133,7 @@
   (loop [weights {} iter 0]
     (if (= iter num-iters)
       weights
-      (recur (mira-iter weights get-losses-and-datum instances nil)
-	     (inc iter)))))
+      (let [[num-errors new-weights] (mira-iter weights get-losses-and-datum instances nil)]
+	(if (zero? num-errors)
+	  weights
+	  (recur new-weights (inc iter)))))))
