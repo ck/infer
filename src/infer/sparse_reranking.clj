@@ -24,7 +24,6 @@
 	log-val (log-add vals)]
     [log-val (map (fn [x] (Math/exp (- x log-val))) vals)]))
 
-
 (defn get-datum
   "get-labels: Available choices for instance
    get-feat-extractor: Given instance, returns feat-vec for each label
@@ -101,13 +100,12 @@
        delta-f])))
 
 (defn mira-iter
-  [init-weights get-losses get-datum instances
+  [init-weights get-losses-and-datum instances
    {:keys [max-alpha]
     :or {max-alpha 0.15, num-iters 10}}]
   (reduce
      (fn [weights instance]
-       (let [losses (get-losses instance)
-	     datum (get-datum instance)
+       (let [[losses datum] (get-losses-and-datum instance)
 	     [alpha delta-f] (mira-update
 			        (fn [weights losses datum]
 				  (let [scores (map (fn [fv] (sparse-dot-product fv weights)) datum)]
@@ -124,10 +122,10 @@
      instances))
 
 (defn train-mira
-  [get-losses get-datum instances
+  [get-losses-and-datum instances
    & {:keys [num-iters] :or {num-iters 10}}]
   (loop [weights {} iter 0]
     (if (= iter num-iters)
       weights
-      (recur (mira-iter weights get-losses get-datum instances nil)
+      (recur (mira-iter weights get-losses-and-datum instances nil)
 	     (inc iter)))))

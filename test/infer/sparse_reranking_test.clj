@@ -23,22 +23,23 @@
 
 (deftest mira-iter-test
   (let [ws {:good -1 :bad 1}
-	ls [0 1 1]
-	data [[(norm-sparse-vec {:good 1})
-		(norm-sparse-vec {:good 1 :bad 1})
-		(norm-sparse-vec {:bad 1})]]]
+	ls [0 1 2]
+	data [(norm-sparse-vec {:good 1})
+	      (norm-sparse-vec {:good 1 :bad 1})
+	      (norm-sparse-vec {:bad 1})]]
     (is (= {:good 1 :bad -1}
-	   (mira-iter {} (constantly [0 1 2]) identity  data {:max-alpha 100})))))
+	   (mira-iter {} (constantly [ls data]) [nil]  {:max-alpha 100})))))
 
 (deftest train-mira-test
   (is (=
        {:good 1 :bad -1}
        (train-mira
-	(constantly [0 1 2])
-	identity
-	[[(norm-sparse-vec {:good 1})
-	  (norm-sparse-vec {:good 1 :bad 1})
-	  (norm-sparse-vec {:bad 1})]]))))
+	(constantly
+	 [[0 1 2]
+	   [(norm-sparse-vec {:good 1})
+	    (norm-sparse-vec {:good 1 :bad 1})
+	    (norm-sparse-vec {:bad 1})]])
+	[nil]))))
 
 (deftest get-posteriors-test
   (let [w {:p1 1.0 :p2 2.0}
