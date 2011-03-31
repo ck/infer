@@ -83,7 +83,7 @@
 
 (defn mira-diff-vec-and-loss [weights y* y-hat losses datum]
   (let [delta-loss (- (nth losses y-hat) (nth losses y*))]
-    (assert (> delta-loss 0))
+    (assert (>= delta-loss 0))
     [(merge-with +
 		(nth datum y*)
 		(map-map - (nth datum y-hat)))
