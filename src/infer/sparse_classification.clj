@@ -230,56 +230,6 @@
         weight-map (encode-weights-to-map weights labels preds)]
     (SparseLinearClassifier. weight-map)))
 
-;; ---------------------------------------------
-;; MaxEnt Reranking
-;; ---------------------------------------------
-
-(defn rerank-post
-  "returns [log-z posts] using a linear model over the weights "
-  [weights-map feat-vecs]
-  (let [vals (map (partial sparse-dot-product weights-map) feat-vecs)		  
-	log-val (log-add vals)]
-    [log-val (map (fn [x] (Math/exp (- x log-val))) vals)]))
-
-(defn rerank-grad [posts datum]
-  (->> posts
-       (map-indexed (fn [i p] (if (zero? i) p (- p))))
-       (vector datum)
-       (apply map (fn [fv post] (map-map (partial * post) fv)))
-       (reduce (partial merge-with (fnil + 0.0 0.0)))))
-
-(defn rerank-obj-term [weight-map datum]
-  (let [[log-z posts] (rerank-post weight-map datum)
-	true-log-score (sparse-dot-product weight-map (first datum))]
-    [(- true-log-score log-z) (rerank-grad posts datum)]))
-
-(defn reranker-obj [train-data preds weights]
-  (let [weight-map (into {} (map vector preds weights))
-	[obj-val grad-map]
-	  (->> train-data
-	       (map (partial rerank-obj-term weight-map))
-	       (reduce (partial apply-each [+ (partial merge-with (fnil + 0.0 0.0))])))]    
-    [(- obj-val) (map #(- (get grad-map % 0.0)) preds)]))
-
-(defn train-reranker
-  "train-data: seq of training examples. each example is a seq of feat-vec maps representing
-   a single example. the first is the correct choice for the example and the rest are incorrect.
-
-   [  [{:good 1} {:bad 1}] ] 
-
-   the training data will be looped over multiple times
-
-   returns the weight vector that can be used to score options"
-  [train-data & {:keys [sigma-sq] :or {sigma-sq 1.0}}]
-  (let [preds (->> train-data (mapcat (partial mapcat keys)) (into #{}) seq)
-	init-weights (repeat (count preds) 0.0)
-	obj-fn (->> (partial reranker-obj train-data preds)
-		    (partial with-l2-regularization sigma-sq)
-		    remember-last)]
-    (->> (lbfgs-optimize obj-fn  init-weights)
-	 (map vector preds)
-	 (into {}))))
-
 
 ;; ---------------------------------------------
 ;; MIRA Online Learning
