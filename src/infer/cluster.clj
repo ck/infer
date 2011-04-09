@@ -13,11 +13,11 @@
 
 (defn best-agglomerative-merge [get-cluster-sim clusters]
   (let [cs (-> clusters seq indexed vec)]
-    (time  (first  (apply max-key
-			  second
-			  (for [[i e1] cs
-				[j e2] (subvec cs (inc i))]
-			    [[i j] (get-cluster-sim e1 e2)]))))))
+    (first  (apply max-key
+		   second
+		   (for [[i e1] cs
+			 [j e2] (subvec cs (inc i))]
+		     [[i j] (get-cluster-sim e1 e2)])))))
 
 (defn cluster-merge [clusters [i j]]
   (assert (< i j))
