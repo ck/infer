@@ -17,4 +17,8 @@
 		   [1 0 0.5]
 		   [0 0.5 0]])]
     (is (= [[0 1] [2]]
-	  (agglomerative-cluster :min (fn [i j] (get-at S i j)) (range 3))))))
+	     (agglomerative-cluster :min (fn [i j] (get-at S i j)) (range 3))))))
+
+(defn agglomerative-perf [S items]
+  (time (agglomerative-cluster
+	 :min (fn [i j] (get-at S i j)) (range items))))

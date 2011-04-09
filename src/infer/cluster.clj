@@ -17,17 +17,18 @@
     [i j]))
 
 (defn best-agglomerative-merge [get-cluster-sim clusters]
-  (let [cs (seq clusters)]
-   (apply max-key
-	  (fn [[i j]] (get-cluster-sim (nth cs i) (nth cs j)))
-	  (upper-triangle-pairs (count cs)))))
+  (let [cs (-> clusters seq vec)]
+    (apply max-key
+	   (fn [[i j]] (get-cluster-sim (nth cs i) (nth cs j)))
+	   (upper-triangle-pairs (count cs)))))
 
 (defn cluster-merge [clusters [i j]]
   (assert (< i j))
   (->> (indexed clusters)
        (remove (comp #{i j} first))
        (map second)
-       (cons (concat (nth clusters i) (nth clusters j)))))
+       (cons (vec (concat (nth clusters i) (nth clusters j))))
+       vec))
 
 (defn agglomerative-cluster
   "does bottom-up clustering between items using similarity maxtrix. each round
@@ -46,12 +47,10 @@
   [[0 1] [2]]"
   [mode get-sim items]
   (let [cluster-sim (partial get-cluster-sim mode get-sim)]
-    (loop [clusters (map (fn [x] [x]) items)]
+    (loop [clusters (vec (map vector items))]
       (if (= (count clusters) 1)
 	clusters
 	(let [to-merge (best-agglomerative-merge cluster-sim clusters)
-	      cluster1 (nth clusters (first to-merge))
-	      cluster2 (nth clusters (second to-merge))
 	      max-score (cluster-sim (nth clusters (first to-merge))
 				     (nth clusters (second to-merge)))]
 	  (if (<= max-score 0.0)
