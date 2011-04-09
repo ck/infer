@@ -11,16 +11,13 @@
 	  :median (nth (sort vals) (/ (count vals) 2))
 	  (throw (RuntimeException. (format "Unrecognized mode: %s" mode))))))
 
-(defn upper-triangle-pairs [n]
-  (for [i (range n)
-	j (range (inc i) n)]
-    [i j]))
-
 (defn best-agglomerative-merge [get-cluster-sim clusters]
-  (let [cs (-> clusters seq vec)]
-    (apply max-key
-	   (fn [[i j]] (get-cluster-sim (nth cs i) (nth cs j)))
-	   (upper-triangle-pairs (count cs)))))
+  (let [cs (-> clusters seq indexed vec)]
+    (time  (first  (apply max-key
+			  second
+			  (for [[i e1] cs
+				[j e2] (subvec cs (inc i))]
+			    [[i j] (get-cluster-sim e1 e2)]))))))
 
 (defn cluster-merge [clusters [i j]]
   (assert (< i j))
@@ -46,7 +43,7 @@
   returns a clustering on xs represented as a list-of-lists of indices.
   [[0 1] [2]]"
   [mode get-sim items]
-  (let [cluster-sim (partial get-cluster-sim mode get-sim)]
+  (let [cluster-sim (partial (memoize get-cluster-sim) mode get-sim)]
     (loop [clusters (vec (map vector items))]
       (if (= (count clusters) 1)
 	clusters
