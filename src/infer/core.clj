@@ -197,56 +197,6 @@
     [[][]]
     (partition 2 2 z)))
 
-(defn map-map [f x]
-  (into {} (for [[k v] x] [k (f v)])))
-
-(defn pmap-map [f x]
-  (into {} (pmap (fn [[k v]] [k (f v)]) x)))
-
-(defn map-from-keys [a f]
-  (into {} (for [k a] [k (f k)])))
-
-(defn map-from-pairs [a f]
-  (into {} (for [[k v] a] [k (f k v)])))
-
-(defn map-from-nested-map [a f]
-  (into {} (for [[k v] a] [k (map-map f v)])))
-
-(defn set-to-unit-map [s]
-  (apply hash-map (interleave s (repeat (count s) 1))))
-
-(defn key-compare
- [x y]
- (cond
-   (and (keyword? x) (not (keyword? y)))
-     1
-   (and (keyword? y) (not (keyword? x)))
-     -1
-   :else
-     (compare x y)))
-
-;;weird inversion makes us revers k1 and k2
-(defn kv-compare [[k1 v1] [k2 v2]]
-  (key-compare k2 k1))
-
-;;TDOO: doesn't seem to work? test and beat on it.
-;;use clojrue sorting: sort-by, sorted-map-by, etc.
-(defn sort-map [m]
-  (into {} (sort kv-compare m)))
-
-(defn map-compare [k]
-  #(compare (k %1) (k %2)))
-
-(defn sort-maps-by [k maps]
-  (sort (map-compare k) maps))
-
-(defn sort-map-of-maps [m]
-  (sort-map
-  (for [[k v] m]
-     [k (if (map? v)
-	  (sort-map-of-maps v)
-	  v)])))
-
 (defn all-keys
   "Teturns a set of all the keys from an arbitarily deeply nested map or seq of
    maps."
@@ -303,18 +253,3 @@
         (if (not (map? v))
   	[new-key v]
         (flatten-level new-key v)))) nil nested-map))))
-
-
-(defn best-by [compare keyfn coll]
-  (if (empty? coll) nil
-      (let [best-finder (fn [best next-elem]
-		    (if (compare (keyfn best) (keyfn next-elem))
-		      best
-		      next-elem))]
-	(reduce best-finder coll))))
-
-(defn max-by [keyfn coll]
-  (best-by > keyfn coll))
-
-(defn min-by [keyfn coll]
-  (best-by < keyfn coll))

@@ -5,7 +5,7 @@
 		 [clojure-csv/clojure-csv "1.1.0"]
 		 [org.apache.commons/commons-math "2.0"]
                  [ujmp-complete "0.2.4"]
-		 [clj-sys/plumbing "0.1.3-SNAPSHOT"]
+		 [clj-sys/plumbing "0.1.5-SNAPSHOT"]
 		 [colt/colt "1.2.0"]
 		 [incanter/parallelcolt "0.9.4"]]
   :dev-dependencies [[swank-clojure "1.2.0"]]

@@ -1,12 +1,13 @@
-(ns infer.learning
-  (:use clojure.set)
-  (:use clojure.contrib.math)
-  (:use infer.core)
-  (:use infer.matrix)
-  (:use infer.measures)
-  (:use infer.probability)
-  (:use infer.information-theory)
-  (:use infer.features))
+(ns  infer.learning
+  (:use clojure.set
+	clojure.contrib.math
+	infer.core
+	infer.matrix
+	infer.measures
+	infer.probability
+	infer.information-theory
+	infer.features
+	[plumbing.core :only [max-by]]))
 
 ;;optimization, regularization, and subset selection
 ;;TODO: should be split into a few libs

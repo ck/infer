@@ -1,11 +1,11 @@
 (ns infer.cross-validation
-  (:use infer.features)
-  (:use infer.neighbors)
-  (:use infer.linear-models)
-  (:use [clojure.contrib.seq-utils :only [flatten]])
-  (:use [clojure.contrib.map-utils :only [deep-merge-with]])
-  (:use [infer.core :only [safe threshold-to map-map levels-deep all-keys]])
-  (:use [infer.probability :only [bucket +cond-prob-tuples]]))
+  (:use infer.features
+	infer.neighbors
+	infer.linear-models
+	[clojure.contrib.seq-utils :only [flatten]]
+	[clojure.contrib.map-utils :only [deep-merge-with]]
+	[infer.core :only [safe levels-deep]]
+	[infer.probability :only [bucket +cond-prob-tuples]]))
 
 (defn probs-only
   "Compute probability from computed counts.

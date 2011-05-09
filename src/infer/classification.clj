@@ -4,12 +4,12 @@
 
    Classifiers are maps of classifier-name -> functions, data are maps of
    feature-name features."
-  (:use infer.features)
-  (:use infer.neighbors)
-  (:use infer.linear-models)
-  (:use [clojure.contrib.map-utils :only [deep-merge-with]])
-  (:use [infer.core :only [safe threshold-to map-map levels-deep all-keys]])
-  (:use [infer.probability :only [bucket +cond-prob-tuples]]))
+  (:use infer.features
+	infer.neighbors
+	infer.linear-models
+	[plumbing.core :only [map-map]]
+	[clojure.contrib.map-utils :only [deep-merge-with]]
+	[infer.probability :only [bucket +cond-prob-tuples]]))
 
 (defn discretizing-classifiers
   "Makes a discretizing classifier out of each key-range pair."

@@ -3,9 +3,9 @@
   (:import [java.util Date Calendar])
   (:use [clojure.set :only [difference]])
   (:use [clojure.contrib.map-utils :only [deep-merge-with]])
-  (:use [infer.core :only [tree-comp any?]])
-  (:use [infer.core
-         :only [set-to-unit-map bottom-level? map-map same-length?]]))
+  (:use [infer.core :only [tree-comp any? bottom-level? same-length?]])
+  (:use [plumbing.core
+         :only [set-to-unit-map map-map]]))
 
 (defn binary
   "A function for binary classification that takes a booleavn value and returns

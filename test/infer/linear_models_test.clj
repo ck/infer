@@ -1,9 +1,8 @@
 (ns infer.linear-models-test 
-  (:use clojure.test)
-  (:require [infer.io :as io])
-  (:use infer.matrix)
-  (:use infer.measures)
-  (:use infer.linear-models))
+  (:use clojure.test
+	infer.matrix
+	infer.measures
+	infer.linear-models))
 
 (def height
 (column-matrix
@@ -101,16 +100,4 @@
 (deftest irls-test
    (is (>= 0.0001 (euclidean-distance
 	 [-1.7078 1.1972 0.4182]
- 	 (from-column-matrix (irls Y X logistic-link binomial-variance Bguess 0.0001))))))
-
-;; (deftest lasso-test
-;;  (let [X (io/csv->matrix "/home/bradford/infer/data/lars_x.csv")
-;; 	Y (io/csv->matrix "/home/bradford/infer/data/lars_y.csv")
-;; 	B (io/csv->matrix "/home/bradford/infer/data/lars_betas.csv")
-;; 	lambda (get-at (io/csv->matrix "/home/bradford/infer/data/lars_lambda.csv")
-;; 		       0 0)
-;; 	precision 0.00001
-;;         Bold (column-matrix (repeat (column-count X) 0))
-;; 	ourB (lasso Y X Bold lambda precision)]
-;;  (is (= B ourB))))
-	
+ 	 (from-column-matrix (irls Y X logistic-link binomial-variance Bguess 0.0001))))))	

@@ -1,10 +1,11 @@
 (ns infer.measures
-  (:use clojure.contrib.math)
-  (:use clojure.contrib.map-utils)
-  (:use clojure.set)
-  (:use infer.core)
-  (:use infer.matrix)
-  (:use [infer.probability :only [gt lt binary]])
+  (:use clojure.contrib.math
+	clojure.contrib.map-utils
+	clojure.set
+	infer.core
+	infer.matrix
+	[infer.probability :only [gt lt binary]]
+	[plumbing.core :only [map-map]])
   (:import org.apache.commons.math.stat.StatUtils)
   (:import [org.apache.commons.math.stat.correlation
 	    PearsonsCorrelation Covariance])
@@ -198,7 +199,7 @@ http://www.amazon.com/Cluster-Analysis-Researchers-Charles-Romesburg/dp/14116061
 [a b]
 (let [_ (assert (same-length? a b))
       n (count a)
-      ranked (reverse (sort-map (zipmap a b)))
+      ranked (reverse (sort-by first (zipmap a b)))
       ;;dcd is the meat of the calculation, the difference between the doncordant and discordant pairs
       dcd (second
            (reduce

@@ -1,6 +1,7 @@
 (ns infer.trees
-  (:use infer.core)
-  (:use infer.measures))
+  (:use infer.core
+	infer.measures
+	[plumbing.core :only [max-by]]))
 
 (defn leaf
 "takes an index i into a vector v.

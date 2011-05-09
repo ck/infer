@@ -1,19 +1,21 @@
 (ns infer.matrix
-  (:use clojure.set)
-  (:import java.util.Random)
-  (:import [org.ujmp.core Matrix
+  (:use clojure-csv.core
+	infer.matrix
+	clojure.set)
+  (:import java.util.Random
+	   [org.ujmp.core Matrix
 	    MatrixFactory
-	    Ops])
-  (:import [org.ujmp.core.matrix Matrix2D])
-  (:import [org.ujmp.colt
-	    ColtSparseDoubleMatrix2D])
-  (:import [org.ujmp.parallelcolt
-	    ParallelColtSparseDoubleMatrix2D])
-  (:import [org.ujmp.core.doublematrix
+	    Ops]
+	   [org.ujmp.core.matrix Matrix2D]
+	   [org.ujmp.colt
+	    ColtSparseDoubleMatrix2D]
+	   [org.ujmp.parallelcolt
+	    ParallelColtSparseDoubleMatrix2D]
+	   [org.ujmp.core.doublematrix
 	    DoubleMatrix DenseDoubleMatrix2D
-	    DoubleMatrix2D SparseDoubleMatrix2D])
-  (:import org.ujmp.core.calculation.Calculation$Ret)
-  (:import org.ujmp.core.doublematrix.calculation.general.decomposition.Chol))
+	    DoubleMatrix2D SparseDoubleMatrix2D]
+	   org.ujmp.core.calculation.Calculation$Ret
+	   org.ujmp.core.doublematrix.calculation.general.decomposition.Chol))
 
 (defn leave-out [js ys]
   (difference (into #{} ys) (into #{} js)))
@@ -331,4 +333,10 @@
          R (fill 0.0 num-rows num-cols)]
     (doseq [x (range 0 num-rows) y (range 0 num-cols)]
       (set-at R (compute-kernel x y) x y))
-    R))	
+    R))
+
+(defn csv->matrix [path]
+  (let [strings (parse-csv (slurp path))]
+    (matrix (for [row strings
+		  :when (not (some #(= "" %) row))]
+		   (map #(Float/parseFloat  %) row)))))

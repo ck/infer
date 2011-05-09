@@ -1,8 +1,8 @@
 (ns infer.probability-test
-  (:use clojure.test)
-  (:use infer.core)
-  (:use infer.classification)
-  (:use infer.probability))
+  (:use clojure.test
+	infer.core
+	infer.classification
+	infer.probability))
 
 (deftest counts-of-1
   (is (= {:a 1 :b 1}
@@ -13,12 +13,6 @@
 	      :b (present-when (lt 5))}
 	     %)
 	   (map-counter +)) [{:a 10 :b 5} {:a 4 :b 1}]))))
-
-(deftest map-fn-to-map
-  (is (=
-       {:a true :b false}
-       (map-map #(>  % 2)
-		{:a 3 :b 2}))))
 
 (deftest counts-by-fn
   (is  (=
