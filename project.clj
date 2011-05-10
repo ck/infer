@@ -10,6 +10,5 @@
 		 [incanter/parallelcolt "0.9.4"]]
   :dev-dependencies [[swank-clojure "1.2.0"]]
   :java-source-path "src/jvm"
-  :repositories {"snapshots" "http://mvn.getwoven.com/repos/woven-public-snapshots"
-                 "releases" "http://mvn.getwoven.com/repos/woven-public-releases"
-                 "oracle" "http://download.oracle.com/maven/"})
+  :repositories {"oracle" "http://download.oracle.com/maven/"})
+                 
