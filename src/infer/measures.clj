@@ -43,27 +43,6 @@
    (StandardDeviation.)
    (double-array xs)))
 
-;;TODO: finish gamma, kendall's-w and 
-
-;;look for old impl, or reimpliment.  http://en.wikipedia.org/wiki/Mahalanobis_distance
-
-;;TODO mote this to a new task in tracker: nonparametric stuff such as: http://en.wikipedia.org/wiki/Median_absolute_deviation
-
-;;DEPENDENCE
-;; http://en.wikipedia.org/wiki/Association_(statistics)
-;; http://en.wikipedia.org/wiki/Independence_(probability_theory)
-;; http://en.wikipedia.org/wiki/Goodman_and_Kruskal%27s_lambda
-;; http://en.wikipedia.org/wiki/Category:Statistical_dependence
-;; http://en.wikipedia.org/wiki/Tetrachoric_correlation_coefficient
-;; http://en.wikipedia.org/wiki/Polychoric_correlation
-;;TODO:  http://en.wikipedia.org/wiki/Multiple_correlation
-;;TODO: further work in mutivariate dependence
-;;http://en.wikipedia.org/wiki/Concordance_correlation_coefficient
-
-;;TODO: more research on spellchecking, string similarity
-;;http://en.wikipedia.org/wiki/Approximate_string_matching
-;;http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
-
 (defn within 
 "
 y is within z of x in metric space.  

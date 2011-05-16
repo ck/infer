@@ -96,11 +96,6 @@
   (apply deep-merge-with +
 	 (map score tst))))
 
-;;http://en.wikipedia.org/wiki/Cross-validation_(statistics)
-;;TODO: n*k fold
-;;leave one out cross validation
-;;extra hold out testing?
-;;easily M/R-able if needed for some models.
 (defn cross-validate
   "takes a model, a training/optimization algorithm, a fitness/loss function.
 
@@ -141,7 +136,6 @@ holds each seq of vectors out in turn as the test set, merges the rest as traini
   (bucket (knn-smoother 10 vecs)
 	  [0 1 2]))
 
-;;TODO: eliminate all this duplciaiton and decouple CV from confusion matrices (makes it coupled to classification problems only)
 (defn cross-validation-confusion-matrix
   "Takes a set of n joint PMFs, and holds each joint PMF out in turn as the test
    set. Merges the resulting n cross-validation matrices into a single matrix."
