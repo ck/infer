@@ -1,9 +1,4 @@
 (ns infer.classification
-  "Fundamentals of classification, cross validation, and performance measures
-   such as precision and recall.
-
-   Classifiers are maps of classifier-name -> functions, data are maps of
-   feature-name features."
   (:use infer.features
 	infer.neighbors
 	infer.linear-models

@@ -8,8 +8,6 @@
          :only [set-to-unit-map map-map]]))
 
 (defn binary
-  "A function for binary classification that takes a booleavn value and returns
-   1 for true and 0 for false."
   [pred]
   (if pred 1 0))
 
@@ -125,21 +123,15 @@
 
 ;;TODO: refactor to use joint-only represetnation and compute marginals and pairwise as needed from the full joint.  this should also lead to some renamings.
 
-;;TODO: this can be replaced with a cond-let like form similar to pattern mathcing.
-;; (match
-;;    missing? [trans (t x)] :missing
-;;    missing? [val-to-bucket (f trans)] :missing
-;;    false? [short-circuit (p val-to-bucket)] short-circuit
-;;    :otherwise (range-classifier r val-to-bucket))
 (defn bucket
   ([f r] (bucket f identity r))
   ([f t r]
      (fn [x]
-       (let [trans (t x)]
-         (if (nil? trans) :missing
-            (let [val-to-bucket (f trans)]
-               (if (nil? val-to-bucket) :missing
-                   (range-classifier r val-to-bucket))))))))
+       (let [trans (t x)
+	     val-to-bucket (when trans (f trans))]
+	 (if (and trans val-to-bucket)
+	   (range-classifier r val-to-bucket)
+	   :missing)))))
 
 (defn cond-prob-tuple
   "build [a&b b] count tuples for calculating conditional probabilities p(a | b)"
