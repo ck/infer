@@ -233,21 +233,6 @@
      {:tailnum 5 :depdelay15 1 :arrdelay15 0}
      {:tailnum 5 :depdelay15 0 :arrdelay15 1}]))))
 
-(deftest conditional-probability-in-ranges
-  (is( =
-  [{1 {0 2}, 2 {0 1, 1 2}, 0 {1 1}} {1 2, 2 3, 0 1}]
-       ((classification-workflow
-   identity
-   (P (present-when (constrain :z > 9))
-      | (discretizing-classifiers {:Carrier (range 1 5 1)}))
-   (vector-counter +cond-prob-tuples))
-       [{:Carrier 1 :Dep "X" :z 10}
-        {:Carrier 3 :Dep "Y" :z 9.1}
-        {:Carrier 2 :Dep "Z" :z 4}
-        {:Carrier 3 :Dep "Z" :z 8.999}
-        {:frk "o" :Carrier 3 :Dep "Z" :z 9.1}
-        {:f "foo" :Carrier 2 :Dep "Y" :z 8.999}]))))
-
 (deftest realtime-flightstats-persistence-prob-test
   (is (= [{6 {1 1}, 5 {3 1}, 4 {6 1}} {6 1, 5 1, 4 1}]
    ((classification-workflow

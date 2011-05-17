@@ -6,12 +6,6 @@
 	[clojure.contrib.map-utils :only [deep-merge-with]]
 	[infer.probability :only [bucket +cond-prob-tuples]]))
 
-(defn discretizing-classifiers
-  "Makes a discretizing classifier out of each key-range pair."
-  [ranges]
-  (for [[k range] ranges]
-    (bucket k range)))
-
 ;; TODO: Better handling for mismatch between fns keys and data keys.
 (defn classify-one-to-one
   "Takes a map of fns and a map of features, where there is one classifier fn per feature and they share the same key names in the classifier and feature maps.  apply each classifer fn to the corresponding feature.
