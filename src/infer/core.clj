@@ -44,7 +44,7 @@
 
 (defn seqable? [x] (or (seq? x) (string? x)))
 
-(defn nil-or-empty [coll]
+(defn nil-or-empty? [coll]
   (or (nil? coll) 
       (and (seqable? coll) (empty? coll))))
 
