@@ -310,19 +310,17 @@ The Minkowski distance is a metric on Euclidean space which can be considered as
 Minkowski distance is typically used with p being 1 or 2. The latter is the Euclidean distance, while the former is sometimes known as the Manhattan distance.
 `
 In the limiting case of p reaching infinity we obtain the Chebyshev distance."
- [a b p]
+[a b p]
 (let [_ (assert (same-length? a b))]
- (pow
-  (apply
-   tree-comp-each
-   + 
-  (fn [[x y]] 
-    (pow 
-     (abs 
-      (- x y)) 
-     p))
-  (map vector a b))
-  (/ 1 p))))
+  (->
+   (map (fn [x y] 
+	  (pow 
+	   (abs 
+	    (- x y)) 
+	   p))
+	a b)
+   sum
+   (pow (/ 1 p)))))
 
 (defn euclidean-distance
 "http://en.wikipedia.org/wiki/Euclidean_distance
@@ -361,11 +359,7 @@ the Euclidean distance or Euclidean metric is the ordinary distance between two 
 "In the limiting case of Lp reaching infinity we obtain the Chebyshev distance."
 [a b]
 (let [_ (assert (same-length? a b))]
-  (apply
-   tree-comp-each
-   max 
-  (fn [[x y]] (- x y))
-  (map vector a b))))
+  (apply max (map - a b))))
 
 (defn manhattan-distance
 "http://en.wikipedia.org/wiki/Manhattan_distance
@@ -506,11 +500,10 @@ In information theory, the Hamming distance between two strings of equal length 
 (if (and (integer? a) (integer? b))
   (hamming-distance (str a) (str b))
 (let [_ (assert (same-length? a b))]
-(apply
- tree-comp-each 
-  + 
-  #(binary (not (apply = %)))
-  (map vector a b)))))
+  (sum
+   (map 
+    (fn [x y] (binary (not= x y)))
+    a b)))))
 
 (defn lee-distance
 "http://en.wikipedia.org/wiki/Lee_distance
@@ -525,13 +518,13 @@ The metric space induced by the Lee distance is a discrete analog of the ellipti
 (if (and (integer? a) (integer? b))
   (lee-distance (str a) (str b) q)
 (let [_ (assert (same-length? a b))]
-(apply
- tree-comp-each 
-  + 
-  (fn [x]
-    (let [diff (abs (apply - (map int x)))]
-      (min diff (- q diff))))
-  (map vector a b)))))
+  (sum
+   (map 
+    (fn [x y]
+      (let [diff (abs (- (int x)
+			 (int y)))]
+	(min diff (- q diff))))
+    a b)))))
 
 (defn sorensen-index
 "

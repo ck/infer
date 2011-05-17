@@ -26,18 +26,6 @@
 	  (map-counter +))
 	 [{:a 3 :b 2} {:a 2 :b 1}]))))
 
-(deftest counts-each-cond-probs-test
-  (is (= {:gt2  [{1 {0 1, 1 1}} {1 2}]}
-   ((classification-workflow
-    identity
-      #(classify-one-to-all
-       {:gt2 (P (present-when (tree-comp (gt 2) :a))
-        | (present-when (tree-comp (lt 3) :b)))}
-       %)
-    (map-counter +cond-prob-tuples))
-    [{:a 3 :b 2}
-     {:a 2 :b 1}]))))
-
 (deftest categorical-classification-test
   (is( =
        [{"HA" {"X" {1 1}}} {"HA" {"X" 1}}]
@@ -327,10 +315,3 @@
     :foo
     (range 0 10 1))
     {:foo nil}))))
-
-(deftest tree-comp-with-p
-  (is (= [{1 {0 1}} {1 1}]
-	 ((P (present-when (tree-comp > :a 5)) | (present-when (tree-comp < :b 10))) {:a 4 :b 5})))
-  (is (= [{1 {1 1}} {1 1}]
-	 ((P (present-when (tree-comp > :a 5)) | (present-when (tree-comp < :b 10))) {:a 6 :b 6}))))
-

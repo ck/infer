@@ -1,5 +1,5 @@
-(defproject infer "1.0.1-SNAPSHOT"
-  :description "inference and machine learning for clojure"
+(defproject infer "1.0.2-SNAPSHOT"
+  :description "inference in clojure"
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
 		 [clojure-csv/clojure-csv "1.1.0"]

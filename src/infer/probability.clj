@@ -3,7 +3,7 @@
   (:import [java.util Date Calendar])
   (:use [clojure.set :only [difference]])
   (:use [clojure.contrib.map-utils :only [deep-merge-with]])
-  (:use [infer.core :only [tree-comp any? bottom-level? same-length?]])
+  (:use [infer.core :only [any? bottom-level? same-length?]])
   (:use [plumbing.core
          :only [set-to-unit-map map-map]]))
 
@@ -97,7 +97,8 @@
 
 (defn present-when
   ([f] #(binary (f %)))
-  ([f & keys] #(binary ((apply tree-comp f keys) %))))
+  ([f & keys]
+     #(binary (apply f (map (fn [x] (x %)) keys)))))
 
 (defn constrain [k f v] #(f (k %) v))
 
@@ -148,16 +149,12 @@
       (tree-maker init bs))))
 
 (defn |
-  "This is the core of the conditional probability based classification model.
-   This model takes a & bs in the form a given bs.  a and bs are all functions,
-   and the conditional probability classification model composes a new
-   classifier function that ultimately returns the cond-prob-tuple:
-   [{a's counts}{b's counts}]."
-  [a b]
-  (apply
-   tree-comp
-   label-cond-prob-dependent
-   a b))
+  "This model takes a & bs in the form a given bs.  a and bs are all functions, and the conditional probability classification model composes a new classifier function that ultimately returns the cond-prob-tuple: [{a's counts}{b's counts}]."
+  [a bs]
+  (fn [& args]
+    (apply label-cond-prob-dependent
+     (apply a args)
+     (map #(apply % args) bs))))
 
 (defn P
   ([a given b & bs]
