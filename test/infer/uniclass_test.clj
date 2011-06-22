@@ -6,7 +6,7 @@
           (diff-vec {:a 1 :c 1} {:b 1 :a -0.4}))))
 
 (deftest update-test
-  (is (= {:a -0.5} (update 1.0 0.5 {:a 1.0} {:a 2.0}))))
+  (is (= {:a 0.5} (update 1.0 0.5 {:a 1.0} {:a 2.0}))))
 
 
 (deftest fn-binary-search-test
