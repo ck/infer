@@ -2,7 +2,7 @@
   {:doc "Uniclass Prediction from \"Online Passive Agressive Algorithms\"
    learn-radius function should do a brain-dead linear search to find a radius
     which contains target rate of the examples"}
-  (:use [plumbing.core :only [map-map]]
+  (:use [plumbing.core :only [map-map sum]]
 	[infer.measures :only [sparse-vec-norm]]))
 
 ;; Sparse Passive Aggressive Uniclass
@@ -10,14 +10,26 @@
 (defn diff-vec [x w]
   (merge-with + x (map-map (partial * -1) w)))
 
+(defn clip [x low high]
+  (cond
+   (< x low) low
+   (> x high) high
+   :else x))
+
+(defn mean-vec [xs]
+  (let [N (count xs)]
+    (->> xs
+	 (reduce
+	  (partial merge-with +)
+	  {})
+	 (map-map (fn [v] (/ v N))))))
+
 (defn update [alpha R w x]
-  (let [diff (diff-vec w x)
+  (let [diff (diff-vec x w)
 	dist (sparse-vec-norm diff)
-	loss (if (> dist R) (- dist R) 0.0)
-	tau (min alpha loss)
-	dist-inv (when (> dist 0.0) (/ 1.0 dist))]
-    (when (> tau 0.0)
-      (map-map (fn [v] (* v tau dist-inv)) diff))))
+	loss (clip (- dist R) 0.0 alpha)]
+    (when (> loss 0.0)
+      (map-map (fn [v] (/ (* v loss) dist)) diff))))
 
 (defn learn-sparse-pa-iter
   [R w0 xs alpha]
@@ -30,42 +42,51 @@
     xs))
 
 (defn learn-sparse-pa
-  [R xs & {:keys [num-iters alpha] :or {num-iters 10 alpha 0.15}}]
-  (loop [iter 0 w nil]
+  [R xs & {:keys [num-iters alpha] :or {num-iters 10 alpha 1}}]
+  (loop [iter 0 w (mean-vec xs)]
     (if (= iter num-iters)
       w
-      (recur (inc iter) (learn-sparse-pa-iter R w xs alpha)))))
+      (recur (inc iter) (learn-sparse-pa-iter R w (shuffle xs) alpha)))))
+
+(defn loss [R alpha w xs]
+  (sum
+   (fn [x] (let [d (sparse-vec-norm (diff-vec w x))]
+	     (clip (- d R) 0.0 alpha)))
+   xs))
 
 (defn num-errors [R w xs]
   (count
    (filter
-    (fn [x] (> (sparse-vec-norm (diff-vec x w)) R))
+    (fn [x] (> (sparse-vec-norm (diff-vec w x)) R))
     xs)))
+
+(defn fn-binary-search
+  "assume f is monotonic on [low,high], want to find f(x)
+   closest to 0 within max number of steps"
+  [f low high num-steps tol]
+  (let [mid (/ (+ low high) 2)
+	f-mid (f mid)]
+    (cond
+     (or (zero? num-steps) (< (Math/abs f-mid) tol)) [mid f-mid]
+     (> f-mid 0) (recur f low mid (dec num-steps) tol)
+     (< f-mid 0) (recur f mid high (dec num-steps) tol))))
 
 (defn learn-radius
   [target xs &
    {:keys [num-iters,callback,step-mult] :or {num-iters 10, step-mult 0.1}}]
   (let [N (count xs)
-	mean (->> xs
-		  (reduce
-		   (partial merge-with +)
-		   {})
-		  (map-map (fn [v] (/ v N))))
-	init-R (+ (apply max
+	mean (mean-vec xs)
+	max-R (+ (apply max
 		       (map (fn [x] (sparse-vec-norm (diff-vec x mean)))
 			    xs))
-		  1.0e-4)]
-    (assert (zero? (num-errors init-R mean xs)))
-    (loop [w mean gamma 1.0 R init-R iter 0]
-      (when callback
-	(callback {:w w :gamma gamma :R R :iter iter}))
-      (if (= iter num-iters)
-	[w R gamma]	
-	(let [scale (if (> gamma target)
-		      (- 1.0 step-mult)
-		      (+ 1.0 step-mult))
-	      new-R (* scale R)
-	      new-w (learn-sparse-pa new-R xs)			   
-	      num-errs (num-errors new-R new-w xs)
-	      new-gamma (double (/ (- N num-errs) N))]
-	  (recur new-w new-gamma new-R (inc iter)))))))
+		  1.0e-4)
+	_ (assert (zero? (num-errors max-R mean xs)))
+	last-w (atom nil)
+	f (fn [R] (let [w (learn-sparse-pa R xs)
+			num-errs (num-errors R w xs)
+			gamma (/ (- N num-errs) N)]
+		    (reset! last-w w)
+		    (- gamma target)))
+	[R dist] (fn-binary-search f 0.0 max-R 10 1.0e-4)]
+    ;; binary search 
+    [@last-w R (+ dist target)]))
