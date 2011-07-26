@@ -23,3 +23,5 @@ aws.clj
 *.project
 *.settings
 *.pyc
+.lein-failures
+checkouts
