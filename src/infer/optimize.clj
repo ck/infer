@@ -80,14 +80,14 @@
             step-size            
           :default (recur (* step-size-multiplier step-size))))))
           
-(defprotocol QuasiNewtonApproximaiton
+(defprotocol QuasiNewtonApproximation
   (inv-hessian-times [this z] "Implicitly multiply H^-1 z for quasi-newton search direction")
   (update-approx [this x-new x-old grad-new grad-old] 
-    "Update approximation after new x and grad points. Should return a new QuasiNewtonApproximaiton"))
+    "Update approximation after new x and grad points. Should return a new QuasiNewtonApproximation"))
   
-(defrecord LBFGSApprixmation [max-history-size x-deltas grad-deltas]
+(defrecord LBFGSApproximation [max-history-size x-deltas grad-deltas]
 
-  QuasiNewtonApproximaiton
+  QuasiNewtonApproximation
   ; See http://en.wikipedia.org/wiki/L-BFGS  
   (inv-hessian-times [this z]
     (let [alphas 
@@ -134,13 +134,13 @@
   (update-approx [this x-new x-old grad-new grad-old]
     (let [x-delta (map - x-new x-old)
           grad-delta (map - grad-new grad-old)]
-      (LBFGSApprixmation.
+      (LBFGSApproximation.
         max-history-size
         (take max-history-size (conj x-deltas x-delta))
         (take max-history-size (conj grad-deltas grad-delta))))))
   
 (defn- new-lbfgs-approx [max-history-size]
-  (LBFGSApprixmation. max-history-size '() '()))  
+  (LBFGSApproximation. max-history-size '() '()))  
             
          
 (defn- quasi-newton-iter
@@ -149,7 +149,7 @@
   
   f: x => [f(x) grad-f(x)]
   x0: current estimate
-  qn-approx: Implements QuasiNewtonApproximaiton
+  qn-approx: Implements QuasiNewtonApproximation
   for efficiency, you want to implicitly multiply inv-hessian approximation 
   with target vector using quasi-newton approximation. "
   [f x0 qn-approx opts]
