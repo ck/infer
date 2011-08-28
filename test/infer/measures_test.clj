@@ -166,7 +166,7 @@
 (deftest test-dot-product
   (is (= 100 (dot-product [5 5 5 5] [5 5 5 5]))))
 
-(deftest test-spaese-dot-product
+(deftest telsst-spaese-dot-product
   (is (= 35 (sparse-dot-product {:f1 10 :f2 1 :f3 5} {:f1 1 :f3 5})))
   (is (= 0 (sparse-dot-product {:f1 10 :f2 1 :f3 5} {:f4 1 :f5 5})))
   (is (= 35 (sparse-dot-product {:f1 10 :f2 1 :f3 5} (seq {:f1 1 :f3 5})))))
